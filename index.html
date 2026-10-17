@@ -107,6 +107,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="card" onclick="go('learn')"><div class="ic">🎓</div><b>Learn Islam</b></div>
 <div class="card" onclick="go('hadith')"><div class="ic">📜</div><b>Hadith</b></div>
 <div class="card" onclick="go('fiqh')"><div class="ic">⚖️</div><b>Fiqh</b></div>
+<div class="card" onclick="go('history')"><div class="ic">🏛️</div><b>History</b></div>
 <div class="card" onclick="go('calendar')"><div class="ic">🌙</div><b>Calendar</b></div>
 </div>
 </div>
@@ -225,6 +226,12 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <button class="back" onclick="go('home')">← Back</button>
 <h2 class="sec-title">⚖️ Fiqh of the Four Imams</h2>
 <p style="font-size:14px;color:var(--muted);margin-bottom:12px">The four great Sunni schools of Islamic law — all valid paths, all from the Quran and Sunnah.</p>
+<h2 class="sec-title" style="font-size:17px">📝 Step-by-Step Guides</h2>
+<div id="guide-list"></div>
+<div id="guide-view" style="display:none">
+<button class="back" onclick="showGuideList()">← All Guides</button>
+<div class="artfull"><h2 id="gu-t"></h2><div id="gu-b"></div></div>
+</div>
 <div id="imam-list"></div>
 <div id="imam-view" style="display:none">
 <button class="back" onclick="showImamList()">← All Imams</button>
@@ -232,6 +239,19 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </div>
 <h2 class="sec-title" style="margin-top:16px">📊 Key Differences</h2>
 <div id="fiqh-topics"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="sec" id="s-history">
+<button class="back" onclick="go('home')">← Back</button>
+<h2 class="sec-title">🏛️ Islamic History</h2>
+<div id="era-list"></div>
+<div id="era-view" style="display:none">
+<button class="back" onclick="showEraList()">← All Eras</button>
+<div class="artfull"><h2 id="er-t"></h2><div id="er-b"></div></div>
+</div>
+<h2 class="sec-title" style="margin-top:16px">⭐ Great Figures</h2>
+<div id="fig-list"></div>
 </div>
 
 <!-- CALENDAR -->
@@ -257,6 +277,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <script src="articles.js"></script>
 <script src="hadith.js"></script>
 <script src="fiqh.js"></script>
+<script src="history.js"></script>
 <script>
 function go(id,btn){
  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
@@ -271,6 +292,7 @@ function go(id,btn){
  if(id==='hadith'&&!hadithLoaded)renderHBooks();
  if(id==='calendar'&&!calLoaded)loadCalendar();
  if(id==='fiqh'&&!fiqhLoaded)renderFiqh();
+ if(id==='history'&&!histLoaded)renderHistory();
  if(id==='prayer'){renderAlertToggle();if(alertsOn)startAlertChecker();}
 }
 /* ---------- QURAN ---------- */
@@ -553,6 +575,14 @@ function resetTasbih(){tcount=0;document.getElementById('tcount').textContent=0;
 /* ---------- FIQH ---------- */
 let fiqhLoaded=false;
 function renderFiqh(){
+ // guides
+ const gl=document.getElementById('guide-list');gl.innerHTML='';
+ FIQH_GUIDES.forEach((g,i)=>{
+  const d=document.createElement('div');d.className='art';
+  d.innerHTML=`<h3>${g.title}</h3><p>${g.steps.length} steps ›</p>`;
+  d.onclick=()=>openGuide(i);
+  gl.appendChild(d);
+ });
  const el=document.getElementById('imam-list');el.innerHTML='';
  FIQH_IMAMS.forEach((im,i)=>{
   const d=document.createElement('div');d.className='art';
@@ -588,8 +618,61 @@ function openImam(i){
 }
 function showImamList(){
  document.getElementById('imam-view').style.display='none';
+ document.getElementById('guide-view').style.display='none';
+ document.getElementById('guide-list').style.display='block';
  document.getElementById('imam-list').style.display='block';
  document.getElementById('fiqh-topics').style.display='block';
+}
+function openGuide(i){
+ const g=FIQH_GUIDES[i];
+ document.getElementById('guide-list').style.display='none';
+ document.getElementById('imam-list').style.display='none';
+ document.getElementById('fiqh-topics').style.display='none';
+ document.getElementById('guide-view').style.display='block';
+ document.getElementById('gu-t').textContent=g.title;
+ let h='<ol style="padding-left:22px;line-height:1.9;font-size:15px">';
+ g.steps.forEach(s=>{h+=`<li style="margin-bottom:8px">${s}</li>`;});
+ h+=`</ol><p style="font-size:13px;color:var(--muted);margin-top:10px">📌 ${g.note}</p>`;
+ document.getElementById('gu-b').innerHTML=h;
+ window.scrollTo(0,0);
+}
+function showGuideList(){showImamList();}
+/* ---------- HISTORY ---------- */
+let histLoaded=false;
+function renderHistory(){
+ const el=document.getElementById('era-list');el.innerHTML='';
+ HISTORY_ERAS.forEach((e,i)=>{
+  const d=document.createElement('div');d.className='art';
+  d.innerHTML=`<h3>${e.title}</h3><p><span dir="rtl">${e.titleUr}</span> • ${e.period} • ${e.events.length} key events ›</p>`;
+  d.onclick=()=>openEra(i);
+  el.appendChild(d);
+ });
+ const fl=document.getElementById('fig-list');fl.innerHTML='';
+ HISTORY_FIGURES.forEach(f=>{
+  const d=document.createElement('div');d.className='dua';
+  d.innerHTML=`<h3>${f[0]} <span dir="rtl" style="font-size:14px;color:var(--gold)">${f[1]}</span></h3><p>${f[2]}</p>`;
+  fl.appendChild(d);
+ });
+ histLoaded=true;
+}
+function openEra(i){
+ const e=HISTORY_ERAS[i];
+ document.getElementById('era-list').style.display='none';
+ document.getElementById('fig-list').style.display='none';
+ document.getElementById('era-view').style.display='block';
+ document.getElementById('er-t').innerHTML=`${e.title}<br><small style="font-size:14px;color:var(--gold)"><span dir="rtl">${e.titleUr}</span> • ${e.period}</small>`;
+ let h='<div style="position:relative;padding-left:22px">';
+ e.events.forEach(ev=>{
+  h+=`<div style="margin-bottom:16px;position:relative"><div style="position:absolute;left:-22px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--green)"></div><div style="position:absolute;left:-17px;top:16px;bottom:-16px;width:2px;background:#e0dccf"></div><b style="color:var(--green)">${ev[0]}</b><p style="font-size:14px;margin-top:4px;line-height:1.7">${ev[1]}</p></div>`;
+ });
+ h+='</div>';
+ document.getElementById('er-b').innerHTML=h;
+ window.scrollTo(0,0);
+}
+function showEraList(){
+ document.getElementById('era-view').style.display='none';
+ document.getElementById('era-list').style.display='block';
+ document.getElementById('fig-list').style.display='block';
 }
 /* ---------- CALENDAR ---------- */
 let calLoaded=false;
