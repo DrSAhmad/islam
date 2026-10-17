@@ -6,6 +6,9 @@
 <title>Islam — Your Complete Islamic Companion | اسلام</title>
 <meta name="description" content="Quran, Hadith, prayer times, Qibla, 99 Names of Allah, duas, tasbih counter and Islamic learning — free.">
 <link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f7f5ef;--card:#fff;--ink:#1f2937;--muted:#6b7280;--green:#0d7a4f;--gold:#b8860b;--radius:14px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -31,10 +34,10 @@ header.top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#0
 .list{background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .row{padding:14px 16px;border-bottom:1px solid #f0ede6;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .row:last-child{border-bottom:0}
-.row .ar{font-size:20px;color:var(--green)}
+.row .ar{font-family:'Amiri','Amiri Quran',serif;font-size:22px;color:var(--green)}
 .row small{color:var(--muted)}
 .ayah{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-.ayah .ar{font-size:22px;line-height:2;text-align:right;direction:rtl;margin-bottom:10px;color:#111}
+.ayah .ar{font-family:'Amiri Quran','Amiri',serif;font-size:24px;line-height:2.2;text-align:right;direction:rtl;margin-bottom:10px;color:#111}
 .ayah .tr{font-size:14px;color:var(--muted);margin-bottom:6px}
 .ayah .en{font-size:15px}
 .ayah .num{display:inline-block;background:var(--green);color:#fff;border-radius:50%;width:28px;height:28px;text-align:center;line-height:28px;font-size:13px;margin-bottom:8px}
@@ -51,13 +54,14 @@ header.top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#0
 .deg{font-size:15px;color:var(--muted);margin-top:8px}
 .namegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .ncard{background:var(--card);border-radius:12px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-.ncard .ar{font-size:24px;color:var(--green);margin-bottom:4px}
+.ncard .ar{font-family:'Amiri','Amiri Quran',serif;font-size:26px;color:var(--green);margin-bottom:4px}
 .ncard b{font-size:14px}
 .ncard small{color:var(--muted);display:block;font-size:12px}
 .dua{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px}
 .dua h3{color:var(--green);margin-bottom:8px;font-size:16px}
-.dua .ar{font-size:19px;direction:rtl;text-align:right;line-height:1.9;margin-bottom:8px}
+.dua .ar{font-family:'Amiri','Amiri Quran',serif;font-size:21px;direction:rtl;text-align:right;line-height:2;margin-bottom:8px}
 .dua .tr{font-style:italic;color:var(--muted);font-size:14px;margin-bottom:6px}
+[dir="rtl"]{font-family:'Noto Nastaliq Urdu','Amiri',serif}
 .dua p{font-size:14px;margin-bottom:4px}
 .tasbih{text-align:center;padding:24px 16px}
 .tcount{font-size:72px;font-weight:800;color:var(--green);margin:10px 0}
