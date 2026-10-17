@@ -91,7 +91,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="wrap">
 <!-- HOME -->
 <div class="sec on" id="s-home">
-<div class="hero"><h2>السلام علیکم</h2><p>Quran • Prayer Times • Qibla • Duas • 99 Names • Tasbih • Learning</p></div>
+<div class="hero"><h2>السلام علیکم</h2><p>Quran + Audio • Prayer Alerts • Qibla • Hadith • Fiqh • 99 Names • Duas • Tasbih</p></div>
 <div class="hijri" id="hijri"></div>
 <div class="grid">
 <div class="card" onclick="go('quran')"><div class="ic">📖</div><b>Quran</b></div>
@@ -102,6 +102,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="card" onclick="go('tasbih')"><div class="ic">📿</div><b>Tasbih</b></div>
 <div class="card" onclick="go('learn')"><div class="ic">🎓</div><b>Learn Islam</b></div>
 <div class="card" onclick="go('hadith')"><div class="ic">📜</div><b>Hadith</b></div>
+<div class="card" onclick="go('fiqh')"><div class="ic">⚖️</div><b>Fiqh</b></div>
 <div class="card" onclick="go('calendar')"><div class="ic">🌙</div><b>Calendar</b></div>
 </div>
 </div>
@@ -119,6 +120,16 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <option value="ur.jalandhry">Urdu — Jalandhry</option>
 <option value="en.sahih">English — Saheeh International</option>
 </select>
+<select id="qari-sel" onchange="changeQari()">
+<option value="ar.alafasy">🎙️ Mishary Alafasy</option>
+<option value="ar.abdulbasitmurattal">🎙️ Abdul Basit Samad</option>
+<option value="ar.saadalghamdi">🎙️ Saad Al-Ghamdi</option>
+<option value="ar.maheralmuaiqly">🎙️ Maher Al-Muaiqly</option>
+<option value="ar.minshawi">🎙️ Al-Minshawi</option>
+<option value="ar.aymanswoyd">🎙️ Ayman Swoyd</option>
+</select>
+<button class="btn" id="play-surah-btn" onclick="toggleSurahAudio()" style="margin-top:4px">▶ Play Full Surah Recitation</button>
+<audio id="surah-audio" style="width:100%;margin-top:8px" controls></audio>
 </div>
 <div id="ayahs"></div>
 </div>
@@ -128,6 +139,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <div class="sec" id="s-prayer">
 <button class="back" onclick="go('home')">← Back</button>
 <h2 class="sec-title">🕋 Prayer Times</h2>
+<div id="alert-toggle-box"></div>
 <div class="hijri" id="hijri2"></div>
 <div id="prayer-box"><div class="loading">Getting your location…</div></div>
 <div style="margin-top:12px">
@@ -195,9 +207,27 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <!-- HADITH -->
 <div class="sec" id="s-hadith">
 <button class="back" onclick="go('home')">← Back</button>
-<h2 class="sec-title">📜 Hadith of the Day</h2>
-<div id="hadith-box"><div class="loading">Loading…</div></div>
-<button class="btn" style="margin-top:12px" onclick="newHadith()">New Hadith 🔄</button>
+<h2 class="sec-title">📜 Hadith Library</h2>
+<div id="hbooks" class="list"></div>
+<div id="hview" style="display:none">
+<button class="back" onclick="showHBooks()">← All Books</button>
+<h2 class="sec-title" id="hv-title"></h2>
+<div id="hlist"></div>
+</div>
+</div>
+
+<!-- FIQH -->
+<div class="sec" id="s-fiqh">
+<button class="back" onclick="go('home')">← Back</button>
+<h2 class="sec-title">⚖️ Fiqh of the Four Imams</h2>
+<p style="font-size:14px;color:var(--muted);margin-bottom:12px">The four great Sunni schools of Islamic law — all valid paths, all from the Quran and Sunnah.</p>
+<div id="imam-list"></div>
+<div id="imam-view" style="display:none">
+<button class="back" onclick="showImamList()">← All Imams</button>
+<div class="artfull"><h2 id="im-t"></h2><div id="im-b"></div></div>
+</div>
+<h2 class="sec-title" style="margin-top:16px">📊 Key Differences</h2>
+<div id="fiqh-topics"></div>
 </div>
 
 <!-- CALENDAR -->
@@ -221,6 +251,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 <script src="names.js"></script>
 <script src="duas.js"></script>
 <script src="articles.js"></script>
+<script src="hadith.js"></script>
+<script src="fiqh.js"></script>
 <script>
 function go(id,btn){
  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
@@ -232,8 +264,10 @@ function go(id,btn){
  if(id==='names'&&!namesLoaded)renderNames();
  if(id==='duas'&&!duasLoaded)renderDuas();
  if(id==='learn'&&!artsLoaded)renderArts();
- if(id==='hadith'&&!hadithLoaded)newHadith();
+ if(id==='hadith'&&!hadithLoaded)renderHBooks();
  if(id==='calendar'&&!calLoaded)loadCalendar();
+ if(id==='fiqh'&&!fiqhLoaded)renderFiqh();
+ if(id==='prayer'){renderAlertToggle();if(alertsOn)startAlertChecker();}
 }
 /* ---------- QURAN ---------- */
 let surahsLoaded=false,curSurah=1;
@@ -380,22 +414,128 @@ function renderArts(){
  artsLoaded=true;
 }
 function showArtList(){document.getElementById('artfull').style.display='none';document.getElementById('artlist').style.display='block';}
-/* ---------- HADITH ---------- */
-const HADITHS=[
-["Actions are judged by intentions.","Sahih Bukhari 1","اعمال کا دارومدار نیتوں پر ہے۔"],
-["None of you truly believes until he loves for his brother what he loves for himself.","Sahih Bukhari 13","تم میں سے کوئی مومن نہیں ہو سکتا جب تک اپنے بھائی کے لیے وہی پسند نہ کرے جو اپنے لیے پسند کرتا ہے۔"],
-["The strong is not the one who overcomes people by wrestling; the strong is the one who controls himself in anger.","Sahih Bukhari 6114","پہلوان وہ نہیں جو کشتی میں جیتے، بلکہ وہ ہے جو غصے میں اپنے نفس پر قابو رکھے۔"],
-["Purity is half of faith.","Sahih Muslim 223","پاکیزگی آدھا ایمان ہے۔"],
-["Make things easy and do not make them difficult.","Sahih Bukhari 69","آسانی پیدا کرو، مشکل نہ بناؤ۔"],
-["The best among you are those who learn the Quran and teach it.","Sahih Bukhari 5027","تم میں سے بہترین وہ ہے جو قرآن سیکھے اور سکھائے۔"],
-["He who believes in Allah and the Last Day should speak good or keep silent.","Sahih Bukhari 6018","جو اللہ اور آخرت پر ایمان رکھتا ہے اسے چاہیے کہ بھلی بات کہے یا خاموش رہے۔"],
-["Allah is Gentle and loves gentleness in all things.","Sahih Bukhari 6927","اللہ نرم ہے اور ہر چیز میں نرمی کو پسند کرتا ہے۔"]
-];
-let hadithLoaded=false;
-function newHadith(){
+/* ---------- HADITH LIBRARY ---------- */
+let hadithLoaded=false,curHBook=null;
+function renderHBooks(){
+ const el=document.getElementById('hbooks');el.innerHTML='';
+ HADITH_BOOKS.forEach(b=>{
+  const d=document.createElement('div');d.className='row';
+  d.innerHTML=`<div><b>${b.title}</b><br><small><span dir="rtl">${b.titleUr}</span> • ${b.count} hadith</small></div><div>›</div>`;
+  d.onclick=()=>openHBook(b.id);
+  el.appendChild(d);
+ });
  hadithLoaded=true;
- const h=HADITHS[Math.floor(Math.random()*HADITHS.length)];
- document.getElementById('hadith-box').innerHTML=`<div class="ayah"><div class="en" style="font-size:17px;line-height:1.7">"${h[0]}"</div><div class="tr" style="margin-top:8px">— ${h[1]}</div><div class="ar" dir="rtl" style="font-size:17px;margin-top:8px">${h[2]}</div></div>`;
+}
+function showHBooks(){document.getElementById('hview').style.display='none';document.getElementById('hbooks').style.display='block';}
+function openHBook(id){
+ curHBook=id;
+ const b=HADITH_BOOKS.find(x=>x.id===id);
+ document.getElementById('hbooks').style.display='none';
+ document.getElementById('hview').style.display='block';
+ document.getElementById('hv-title').textContent=b.title;
+ const el=document.getElementById('hlist');el.innerHTML='';
+ HADITHS[id].forEach((h,i)=>{
+  const d=document.createElement('div');d.className='ayah';
+  d.innerHTML=`<span class="num">${i+1}</span><div class="ar">${h.ar}</div><div class="en">${h.en}</div><div class="tr" style="margin-top:6px" dir="rtl">${h.ur}</div><div class="tr" style="margin-top:6px;color:var(--gold)">📖 ${h.ref}</div>`;
+  el.appendChild(d);
+ });
+}
+/* ---------- QARI AUDIO ---------- */
+let qariAudio=null,surahAudioData=null;
+function changeQari(){ if(surahAudioData)loadSurahAudio(); }
+async function loadSurahAudio(){
+ const q=document.getElementById('qari-sel').value;
+ const a=document.getElementById('surah-audio');
+ a.src='';document.getElementById('play-surah-btn').textContent='⏳ Loading recitation…';
+ try{
+  const r=await fetch(`https://api.alquran.cloud/v1/surah/${curSurah}/${q}`);
+  const j=await r.json();surahAudioData=j.data;
+  // Build a playlist: play ayah by ayah
+  a.src=j.data.ayahs[0].audio;
+  document.getElementById('play-surah-btn').textContent='▶ Play Full Surah Recitation';
+ }catch(e){document.getElementById('play-surah-btn').textContent='⚠️ Audio failed — try again';}
+}
+function toggleSurahAudio(){
+ const a=document.getElementById('surah-audio');
+ if(!a.src){loadSurahAudio().then(()=>a.play());return;}
+ if(a.paused){a.play();}else{a.pause();}
+}
+// Auto-advance ayahs
+document.addEventListener('DOMContentLoaded',()=>{
+ const a=document.getElementById('surah-audio');
+ let idx=0;
+ a.addEventListener('ended',()=>{
+  if(surahAudioData&&idx<surahAudioData.ayahs.length-1){
+   idx++;a.src=surahAudioData.ayahs[idx].audio;a.play();
+  }else{document.getElementById('play-surah-btn').textContent='▶ Play Full Surah Recitation';idx=0;}
+ });
+ a.addEventListener('play',()=>{document.getElementById('play-surah-btn').textContent='⏸ Pause Recitation';});
+ a.addEventListener('pause',()=>{document.getElementById('play-surah-btn').textContent='▶ Play Full Surah Recitation';});
+});
+/* ---------- PRAYER ALERTS ---------- */
+let alertsOn=localStorage.getItem('prayerAlerts')==='1';
+let alertTimes={};
+function renderAlertToggle(){
+ const box=document.getElementById('alert-toggle-box');
+ if(!box)return;
+ box.innerHTML=`<label style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:12px;cursor:pointer">
+ <input type="checkbox" id="alert-chk" ${alertsOn?'checked':''} style="width:22px;height:22px" onchange="toggleAlerts(this.checked)">
+ <span><b>🔔 Prayer Time Alerts</b><br><small style="color:var(--muted)">Get notified at each prayer time</small></span></label>`;
+}
+async function toggleAlerts(on){
+ alertsOn=on;localStorage.setItem('prayerAlerts',on?'1':'0');
+ if(on){
+  if('Notification' in window){
+   const p=await Notification.requestPermission();
+   if(p!=='granted'){alert('Please allow notifications for prayer alerts.');document.getElementById('alert-chk').checked=false;alertsOn=false;localStorage.setItem('prayerAlerts','0');return;}
+  }
+  startAlertChecker();
+  alert('Prayer alerts ON — you will be notified at each prayer time. 🔔');
+ }else{
+  alert('Prayer alerts OFF.');
+ }
+}
+function prayerAlertTone(){
+ try{
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  [523,659,784].forEach((f,i)=>{
+   const o=ctx.createOscillator(),g=ctx.createGain();
+   o.connect(g);g.connect(ctx.destination);o.frequency.value=f;
+   const t=ctx.currentTime+i*0.35;
+   g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.5,t+0.05);
+   g.gain.exponentialRampToValueAtTime(0.0001,t+0.3);
+   o.start(t);o.stop(t+0.35);
+  });
+ }catch(e){}
+}
+function startAlertChecker(){
+ setInterval(()=>{
+  if(!alertsOn||!prayerLoaded)return;
+  const now=new Date();
+  const key=now.toISOString().slice(0,16); // YYYY-MM-DDTHH:MM
+  if(alertTimes[key])return;
+  // check each prayer time
+  document.querySelectorAll('#prayer-box .ptime').forEach(row=>{
+   const name=row.querySelector('span').textContent.replace(' ⭐','');
+   const t=row.querySelector('b').textContent;
+   const m=t.match(/(\d+):(\d+)\s*(AM|PM)/);
+   if(!m)return;
+   let h=+m[1];if(m[3]==='PM'&&h!==12)h+=12;if(m[3]==='AM'&&h===12)h=0;
+   const pt=new Date();pt.setHours(h,+m[2],0,0);
+   const diff=(pt-now)/60000; // minutes
+   if(diff>=-1&&diff<=1){
+    alertTimes[key]=1;
+    prayerAlertTone();
+    if(navigator.vibrate)navigator.vibrate([300,200,300]);
+    const msg=`🕌 ${name} time — it's time to pray!`;
+    if('Notification' in window&&Notification.permission==='granted'){
+     try{new Notification('Islam — Prayer Time',{body:msg,icon:'icon-192.png'});}catch(e){}
+    }
+    alert(msg);
+   }
+  });
+ },30000);
+ // render toggle if prayer section visible
 }
 /* ---------- TASBIH ---------- */
 let tcount=+(localStorage.getItem('tasbih')||0);
@@ -406,6 +546,47 @@ function tapTasbih(){
  if(navigator.vibrate&&(tcount%33===0))navigator.vibrate(80);
 }
 function resetTasbih(){tcount=0;document.getElementById('tcount').textContent=0;localStorage.setItem('tasbih',0);}
+/* ---------- FIQH ---------- */
+let fiqhLoaded=false;
+function renderFiqh(){
+ const el=document.getElementById('imam-list');el.innerHTML='';
+ FIQH_IMAMS.forEach((im,i)=>{
+  const d=document.createElement('div');d.className='art';
+  d.innerHTML=`<h3>${im.name} <span style="font-size:13px;color:var(--gold)">${im.madhhab}</span></h3><p>${im.title} • ${im.born}</p>`;
+  d.onclick=()=>openImam(i);
+  el.appendChild(d);
+ });
+ // topics table
+ const te=document.getElementById('fiqh-topics');te.innerHTML='';
+ FIQH_TOPICS.forEach(t=>{
+  const d=document.createElement('div');d.className='artfull';d.style.marginBottom='12px';
+  let h=`<h2 style="font-size:16px">${t.topic}</h2><div style="overflow-x:auto"><table style="width:100%;font-size:13px;border-collapse:collapse;min-width:480px">`;
+  h+=`<tr style="background:var(--green);color:#fff"><th style="padding:8px;text-align:left">Ruling</th><th style="padding:8px">Hanafi</th><th style="padding:8px">Maliki</th><th style="padding:8px">Shafi'i</th><th style="padding:8px">Hanbali</th></tr>`;
+  t.rows.forEach((r,ri)=>{
+   h+=`<tr style="background:${ri%2?'#f9f7f2':'#fff'}"><td style="padding:8px;font-weight:600">${r[0]}</td><td style="padding:8px;text-align:center">${r[1]}</td><td style="padding:8px;text-align:center">${r[2]}</td><td style="padding:8px;text-align:center">${r[3]}</td><td style="padding:8px;text-align:center">${r[4]}</td></tr>`;
+  });
+  h+='</table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">* Simplified — consult a scholar for details.</p>';
+  d.innerHTML=h;te.appendChild(d);
+ });
+ fiqhLoaded=true;
+}
+function openImam(i){
+ const im=FIQH_IMAMS[i];
+ document.getElementById('imam-list').style.display='none';
+ document.getElementById('fiqh-topics').style.display='none';
+ document.getElementById('imam-view').style.display='block';
+ document.getElementById('im-t').innerHTML=`${im.name}<br><small style="font-size:14px;color:var(--gold)">${im.madhhab} • <span dir="rtl">${im.nameUr}</span></small>`;
+ let h=`<p><b>${im.title}</b></p><p><b>Born:</b> ${im.born}<br><b>Died:</b> ${im.died}</p><p>${im.bio}</p>`;
+ h+=`<p><b>Methodology:</b> ${im.methodology}</p><p><b>Key rulings:</b></p><ul style="padding-left:20px;line-height:1.9;font-size:14px">`;
+ im.keyPoints.forEach(k=>{h+=`<li>${k}</li>`;});
+ h+='</ul>';
+ document.getElementById('im-b').innerHTML=h;
+}
+function showImamList(){
+ document.getElementById('imam-view').style.display='none';
+ document.getElementById('imam-list').style.display='block';
+ document.getElementById('fiqh-topics').style.display='block';
+}
 /* ---------- CALENDAR ---------- */
 let calLoaded=false;
 async function loadCalendar(){
